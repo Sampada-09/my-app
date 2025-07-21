@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   tools {
-    nodejs "NodeJS 20.19.4" // name must match the one you configured
+    nodejs "node24" // name must match the one you configured
   }
 
   parameters {
