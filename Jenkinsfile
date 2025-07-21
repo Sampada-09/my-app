@@ -3,7 +3,7 @@ pipeline {
 
   parameters {
     string(name: 'DEPLOY_VERSION', defaultValue: 'v1.0.0', description: 'Release version')
-    string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch to deploy')
+    string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Git branch to deploy')
     choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Target environment')
   }
 
@@ -23,13 +23,17 @@ pipeline {
       }
     }
 
+    stage('Install Dependencies') {
+      steps {
+        echo "Installing dependencies"
+        sh 'npm install'
+      }
+    }
+
     stage('Build') {
       steps {
         echo "Building version ${params.DEPLOY_VERSION}"
-        sh '''
-          npm install
-          npm run build
-        '''
+        sh 'npm run build'
       }
     }
 
@@ -38,8 +42,10 @@ pipeline {
         echo "Deploying to environment: ${params.ENV}"
         script {
           try {
-            sh 'echo Deploying...'
-            sh 'exit 1'  // Simulating a fail (you'll swap this later)
+            // Replace this with your actual deployment script/commands
+            sh 'echo "Deploying app..."'
+            // Simulate deployment success or failure:
+            // sh 'exit 1'  // Uncomment to simulate failure
           } catch (Exception e) {
             echo "Deployment failed. Triggering rollback..."
             currentBuild.result = 'FAILURE'
@@ -52,7 +58,7 @@ pipeline {
 
   post {
     failure {
-      echo "🔁 Rollback logic would go here"
+      echo "🔁 Rolling back deployment to last working version..."
     }
     success {
       echo "✅ Deployment succeeded: ${params.DEPLOY_VERSION} → ${params.ENV}"
