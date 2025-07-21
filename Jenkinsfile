@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   tools {
-    nodejs "node24" // name must match the one you configured
+    nodejs "node24" // This must match what you configured in "Global Tool Configuration"
   }
 
   parameters {
@@ -17,12 +17,27 @@ pipeline {
   }
 
   stages {
+
+    stage('Clean Workspace') {
+      steps {
+        echo "🧹 Cleaning workspace"
+        deleteDir()
+      }
+    }
+
     stage('Checkout') {
       steps {
         echo "📦 Checking out branch: ${params.BRANCH_NAME}"
         git branch: "${params.BRANCH_NAME}",
             url: 'https://github.com/Sampada-09/my-app.git',
             credentialsId: 'github-creds'
+      }
+    }
+
+    stage('Verify package.json') {
+      steps {
+        echo "🕵️ Checking package.json exists"
+        sh 'ls -la && test -f package.json'
       }
     }
 
@@ -46,7 +61,7 @@ pipeline {
         script {
           try {
             sh 'echo Simulating deploy...'
-            // sh 'exit 1' // simulate failure
+            // Uncomment to simulate failure: sh 'exit 1'
           } catch (err) {
             echo "❌ Deployment failed. Triggering rollback..."
             currentBuild.result = 'FAILURE'
@@ -60,6 +75,7 @@ pipeline {
   post {
     failure {
       echo "🔁 Rolling back deployment to last working version..."
+      // Add rollback logic here if needed
     }
     success {
       echo "✅ Deployment succeeded: ${params.DEPLOY_VERSION} → ${params.ENV}"
