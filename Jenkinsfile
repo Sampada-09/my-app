@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  tools {
+    nodejs "NodeJS 20.19.4" // name must match the one you configured
+  }
+
   parameters {
     string(name: 'DEPLOY_VERSION', defaultValue: 'v1.0.0', description: 'Release version')
     string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch to deploy')
@@ -13,13 +17,6 @@ pipeline {
   }
 
   stages {
-    stage('Version Check') {
-      steps {
-        sh 'node -v'
-        sh 'npm -v'
-      }
-    }
-
     stage('Checkout') {
       steps {
         echo "📦 Checking out branch: ${params.BRANCH_NAME}"
@@ -48,10 +45,8 @@ pipeline {
         echo "🚀 Deploying to environment: ${params.ENV}"
         script {
           try {
-            // Simulate deployment
             sh 'echo Simulating deploy...'
-            // Uncomment below to simulate a failure
-            // sh 'exit 1'
+            // sh 'exit 1' // simulate failure
           } catch (err) {
             echo "❌ Deployment failed. Triggering rollback..."
             currentBuild.result = 'FAILURE'
