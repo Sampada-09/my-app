@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  options {
+    skipDefaultCheckout(true) // 🔥 THIS IS KEY
+  }
+
   tools {
     nodejs "node24" // This must match what you configured in "Global Tool Configuration"
   }
