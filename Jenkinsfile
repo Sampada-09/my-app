@@ -2,11 +2,11 @@ pipeline {
   agent any
 
   options {
-    skipDefaultCheckout(true) // 🔥 THIS IS KEY
+    skipDefaultCheckout(true)
   }
 
   tools {
-    nodejs "node24" // This must match what you configured in "Global Tool Configuration"
+    nodejs "node24" // make sure this matches your Jenkins NodeJS tool config
   }
 
   parameters {
@@ -32,16 +32,32 @@ pipeline {
     stage('Checkout') {
       steps {
         echo "📦 Checking out branch: ${params.BRANCH_NAME}"
-        git branch: "${params.BRANCH_NAME}",
-            url: 'https://github.com/Sampada-09/my-app.git',
-            credentialsId: 'github-creds'
+        // Checkout repo into root workspace folder explicitly
+        dir('.') {
+          git branch: "${params.BRANCH_NAME}",
+              url: 'https://github.com/Sampada-09/my-app.git',
+              credentialsId: 'github-creds'
+        }
+      }
+    }
+
+    stage('Debug Workspace') {
+      steps {
+        echo "🧠 Listing all files recursively to find package.json"
+        sh 'ls -R'
       }
     }
 
     stage('Verify package.json') {
       steps {
-        echo "🕵️ Checking package.json exists"
-        sh 'ls -la && test -f package.json'
+        echo "🕵️ Verifying package.json existence"
+        sh '''
+          if [ ! -f package.json ]; then
+            echo "❌ package.json NOT found in the current directory"
+            exit 1
+          fi
+          echo "✅ package.json found"
+        '''
       }
     }
 
@@ -65,7 +81,7 @@ pipeline {
         script {
           try {
             sh 'echo Simulating deploy...'
-            // Uncomment to simulate failure: sh 'exit 1'
+            // sh 'exit 1' // Uncomment to simulate failure
           } catch (err) {
             echo "❌ Deployment failed. Triggering rollback..."
             currentBuild.result = 'FAILURE'
