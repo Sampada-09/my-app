@@ -6,12 +6,12 @@ pipeline {
   }
 
   tools {
-    nodejs "node24" // make sure this matches your Jenkins NodeJS tool config
+    nodejs "node24"
   }
 
   parameters {
     string(name: 'DEPLOY_VERSION', defaultValue: 'v1.0.0', description: 'Release version')
-    string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch to deploy')
+    string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Git branch to deploy')
     choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Target environment')
   }
 
@@ -24,15 +24,14 @@ pipeline {
 
     stage('Clean Workspace') {
       steps {
-        echo "🧹 Cleaning workspace"
+        echo "Cleaning workspace"
         deleteDir()
       }
     }
 
     stage('Checkout') {
       steps {
-        echo "📦 Checking out branch: ${params.BRANCH_NAME}"
-        // Checkout repo into root workspace folder explicitly
+        echo "Checking out branch: ${params.BRANCH_NAME}"
         dir('.') {
           git branch: "${params.BRANCH_NAME}",
               url: 'https://github.com/Sampada-09/my-app.git',
@@ -43,47 +42,46 @@ pipeline {
 
     stage('Debug Workspace') {
       steps {
-        echo "🧠 Listing all files recursively to find package.json"
+        echo "Listing all files recursively to find package.json"
         sh 'ls -R'
       }
     }
 
     stage('Verify package.json') {
       steps {
-        echo "🕵️ Verifying package.json existence"
+        echo "Verifying package.json existence"
         sh '''
           if [ ! -f package.json ]; then
-            echo "❌ package.json NOT found in the current directory"
+            echo "package.json NOT found in the current directory"
             exit 1
           fi
-          echo "✅ package.json found"
+          echo "package.json found"
         '''
       }
     }
 
     stage('Install Dependencies') {
       steps {
-        echo "📥 Installing dependencies"
+        echo "Installing dependencies"
         sh 'npm install'
       }
     }
 
     stage('Build') {
       steps {
-        echo "🔧 Building version ${params.DEPLOY_VERSION}"
+        echo "Building version ${params.DEPLOY_VERSION}"
         sh 'npm run build'
       }
     }
 
     stage('Deploy') {
       steps {
-        echo "🚀 Deploying to environment: ${params.ENV}"
+        echo "Deploying to environment: ${params.ENV}"
         script {
           try {
             sh 'echo Simulating deploy...'
-            // sh 'exit 1' // Uncomment to simulate failure
           } catch (err) {
-            echo "❌ Deployment failed. Triggering rollback..."
+            echo "Deployment failed. Triggering rollback..."
             currentBuild.result = 'FAILURE'
             throw err
           }
@@ -94,11 +92,10 @@ pipeline {
 
   post {
     failure {
-      echo "🔁 Rolling back deployment to last working version..."
-      // Add rollback logic here if needed
+      echo "Rolling back deployment to last working version..."
     }
     success {
-      echo "✅ Deployment succeeded: ${params.DEPLOY_VERSION} → ${params.ENV}"
+      echo "Deployment succeeded: ${params.DEPLOY_VERSION} → ${params.ENV}"
     }
   }
 }
