@@ -1,10 +1,5 @@
 pipeline {
-  agent {
-    docker {
-      image 'node:18'
-      args '-u root:root'  // ensures permission issues are avoided
-    }
-  }
+  agent any
 
   parameters {
     string(name: 'DEPLOY_VERSION', defaultValue: 'v1.0.0', description: 'Release version')
@@ -18,6 +13,13 @@ pipeline {
   }
 
   stages {
+    stage('Version Check') {
+      steps {
+        sh 'node -v'
+        sh 'npm -v'
+      }
+    }
+
     stage('Checkout') {
       steps {
         echo "📦 Checking out branch: ${params.BRANCH_NAME}"
@@ -46,7 +48,7 @@ pipeline {
         echo "🚀 Deploying to environment: ${params.ENV}"
         script {
           try {
-            // Replace this with real deployment logic later
+            // Simulate deployment
             sh 'echo Simulating deploy...'
             // Uncomment below to simulate a failure
             // sh 'exit 1'
@@ -63,7 +65,6 @@ pipeline {
   post {
     failure {
       echo "🔁 Rolling back deployment to last working version..."
-      // Add rollback logic here
     }
     success {
       echo "✅ Deployment succeeded: ${params.DEPLOY_VERSION} → ${params.ENV}"
