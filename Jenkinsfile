@@ -18,7 +18,7 @@ pipeline {
       steps {
         echo "Checking out branch: ${params.BRANCH_NAME}"
         git branch: "${params.BRANCH_NAME}", 
-            url: 'https://github.com/<your-username>/<your-repo>.git', 
+            url: 'https://github.com/Sampada-09/my-app.git', 
             credentialsId: 'github-creds'
       }
     }
