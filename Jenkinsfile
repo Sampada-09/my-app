@@ -1,9 +1,9 @@
 pipeline {
   agent any
 
-  options {
-    skipDefaultCheckout(true)
-  }
+  // options {
+  //   skipDefaultCheckout(true)
+  // }
 
   tools {
     nodejs "node24"
