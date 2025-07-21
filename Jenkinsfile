@@ -1,9 +1,14 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'node:18'
+      args '-u root:root'  // ensures permission issues are avoided
+    }
+  }
 
   parameters {
     string(name: 'DEPLOY_VERSION', defaultValue: 'v1.0.0', description: 'Release version')
-    string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Git branch to deploy')
+    string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch to deploy')
     choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Target environment')
   }
 
@@ -13,43 +18,42 @@ pipeline {
   }
 
   stages {
-
     stage('Checkout') {
       steps {
-        echo "Checking out branch: ${params.BRANCH_NAME}"
-        git branch: "${params.BRANCH_NAME}", 
-            url: 'https://github.com/Sampada-09/my-app.git', 
+        echo "📦 Checking out branch: ${params.BRANCH_NAME}"
+        git branch: "${params.BRANCH_NAME}",
+            url: 'https://github.com/Sampada-09/my-app.git',
             credentialsId: 'github-creds'
       }
     }
 
     stage('Install Dependencies') {
       steps {
-        echo "Installing dependencies"
+        echo "📥 Installing dependencies"
         sh 'npm install'
       }
     }
 
     stage('Build') {
       steps {
-        echo "Building version ${params.DEPLOY_VERSION}"
+        echo "🔧 Building version ${params.DEPLOY_VERSION}"
         sh 'npm run build'
       }
     }
 
     stage('Deploy') {
       steps {
-        echo "Deploying to environment: ${params.ENV}"
+        echo "🚀 Deploying to environment: ${params.ENV}"
         script {
           try {
-            // Replace this with your actual deployment script/commands
-            sh 'echo "Deploying app..."'
-            // Simulate deployment success or failure:
-            // sh 'exit 1'  // Uncomment to simulate failure
-          } catch (Exception e) {
-            echo "Deployment failed. Triggering rollback..."
+            // Replace this with real deployment logic later
+            sh 'echo Simulating deploy...'
+            // Uncomment below to simulate a failure
+            // sh 'exit 1'
+          } catch (err) {
+            echo "❌ Deployment failed. Triggering rollback..."
             currentBuild.result = 'FAILURE'
-            throw e
+            throw err
           }
         }
       }
@@ -59,6 +63,7 @@ pipeline {
   post {
     failure {
       echo "🔁 Rolling back deployment to last working version..."
+      // Add rollback logic here
     }
     success {
       echo "✅ Deployment succeeded: ${params.DEPLOY_VERSION} → ${params.ENV}"
